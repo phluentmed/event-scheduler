@@ -14,7 +14,7 @@ def atm_chicago():
         else:
             print("Chicago ATM Transaction Failed")
 
-    event_scheduler.enter(1, 0, account.withdraw, [90, is_transaction_successful])
+    event_scheduler.enter(1, 1, account.withdraw, [90, is_transaction_successful]) # note priority is at 1
 
 
 def atm_los_angeles():
@@ -24,15 +24,22 @@ def atm_los_angeles():
         else:
             print("Los Angeles ATM Transaction Failed")
 
-    event_scheduler.enter(1, 1, account.withdraw, [20, is_transaction_successful])
+    event_scheduler.enter(1, 0, account.withdraw, [20, is_transaction_successful]) #note priority here is 0
 
 
-# Example 1
+# Example 1 since Los Angeles has higher priority it will execute first
 thread_atm_chicago = threading.Thread(target=atm_chicago, name="ATM Chicago")
 thread_atm_los_angeles = threading.Thread(target=atm_los_angeles, name="ATM Los Angeles")
 thread_atm_chicago.start()
 thread_atm_los_angeles.start()
 thread_atm_chicago.join()
 thread_atm_los_angeles.join()
+'''
+Los Angeles ATM Transaction Successful
+You have withdrawn: 20
+The new balance is: 80
 
+Chicago ATM Transaction Failed
+Insufficient funds
+'''
 event_scheduler.stop()
