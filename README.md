@@ -16,7 +16,7 @@ Refer to [sched.scheduler](https://github.com/python/cpython/blob/3.8/Lib/sched.
 ### Installing
 You should already have pip installed if you're using python > 3.4, in the case you don't please visit this [link](https://pip.pypa.io/en/stable/installing/) to install it.
 
-To install the always-on event scheduler type the following command in terminal.
+To install the always-on event scheduler type the following command in the terminal.
 
 `pip install Event-Scheduler-pkg-Phluent-Med==0.0.1`
 
@@ -24,51 +24,100 @@ To install the always-on event scheduler type the following command in terminal.
 To download directly you can visit this [link](https://pypi.org/project/Event-Scheduler-pkg-Phluent-Med/0.0.1/) or visit the [GitHub repository](https://github.com/phluentmed/EventScheduler).
 
 ### Features
-<ins>New features:</ins>
+<ins> [Previous features:](https://docs.python.org/3/library/sched.html#scheduler-objects) </ins>
 
-`SchedulerStatus` is an enum that has 3 statuses.
+`scheduler.enterabs(time, priority, action, argument=(), kwargs={})`
+>
+>Schedule a new event. The time argument should be a numeric type compatible with the return value of the timefunc function passed to the constructor. Events scheduled for the same time will be executed in the order of their priority. A lower number represents a higher priority.
+>
+>Executing the event means executing action(*argument, **kwargs). argument is a sequence holding the positional arguments for action. kwargs is a dictionary holding the keyword arguments for action.
+>
+>Return value is an event which may be used for later cancellation of the event (see cancel()).
 
-**RUNNING** : Represented by an enum value of 0, indicates the event scheduler is running and you may enter "tasks".
+`scheduler.enter(delay, priority, action, argument=(), kwargs={})`
 
-**STOPPING** : Represented by an enum value of 1, the event scheduler will no longer take tasks and will continue running until all tasks are completed in the queue.
+>Schedule an event for delay more time units. Other than the relative time, the other arguments, the effect and the return value are the same as those for enterabs().
 
-**STOPPED** : Represented by an enum value of 2, is the state where the event scheduler is not running or taking any tasks.
+`scheduler.cancel(event)`
 
-`start` method triggers the EventScheduler to start running, and will start executing tasks in its queue.
+> Remove the event from the queue. If event is not an event currently in the queue, this method will raise a ValueError.
 
-`stop` method will prevent the event scheduler from taking any more tasks. If the scheduler has tasks in the queue, the scheduler goes in stopping status until it's empty then becomes stopped else it goes to stopped directly.
+`scheduler.empty()`
 
-<ins>Modified features:</ins>
+>Return True if the event queue is empty.
 
-There is no `empty()` check for the queue anymore. If you need to access the queue to see if it's empty.
+`scheduler.queue`
 
-Stop the EventScheduler using `stop()`. You may have to wait for the scheduler status to change to **STOPPED**. Once stopped you can access it by `self._queue`.
+> Read-only attribute returning a list of upcoming events in the order they will be run. Each event is shown as a named tuple with the following fields: time, priority, action, argument, kwargs.
+
+<ins>[New features:](https://github.com/phluentmed/EventScheduler#readme)</ins>
+
+`scheduler.start()` 
+
+Method triggers the EventScheduler to start running, and will start executing tasks in its queue depending on delay and priority.
+
+`scheduler.stop()` 
+
+Method will prevent the event scheduler from taking any more tasks. If the scheduler has tasks in the queue, the scheduler goes in stopping status until it's empty then becomes stopped else it goes to stopped directly.
+
+`scheduler.run(blocking=True)`
+
+Is now a private method and should not be called. 
  
-
-***If you need event scheduler running and need to check if queue is empty (NOT RECOMMENDED):***
-
-You can access it by checking if it is in an atomic state by checking `self._lock` then checking `self._queue` this is a dangerous operation and is guaranteed thus not recommended.
- 
-
 ### Usage
-Instantiating the event scheduler constructor, the argument it takes is the string name of the thread.
+In this example we're going to be creating a bank account and managing transactions with an event scheduler.
 
-`event_scheduler = EventScheduler("new_thread_name")`
+Here in this example it's important to have an accurate balance. The transactions we'll focus on are deposit and withdraw for this case.
+
+class BankAccount:
+
+    def __init__(self, balance=0):
+        self.balance = balance
+
+    def deposit(self, deposit, result_handler):
+        if deposit > 0:
+            self.balance += deposit
+            result_handler(0)  # return code of 0 indicates successful
+            print("You have deposited: " + str(deposit))
+            print("The new balance is: " + str(self.balance) + "\n")
+            return
+        result_handler(-1)  # return code of -1 indicates failure
+        print("Must deposit a positive amount \n")
+
+    def withdraw(self, withdrawal, result_handler):
+        if withdrawal <= self.balance:
+            self.balance -= withdrawal
+            result_handler(0)  # return code of 0 indicates successful
+            print("You have withdrawn: " + str(withdrawal))
+            print("The new balance is: " + str(self.balance) + "\n")
+            return
+        result_handler(-1)  # return code of -1 indicates failure
+        print("Insufficient funds \n")
 
 
-Starting the event scheduler to allow it to take tasks and start executing them.
+First thing we're going to do is import the from the EventScheduler package at the top of the file.
 
-`event_scheduler.start()`
+`from EventScheduler_pkg.EventScheduler import EventScheduler`
 
-Enqueuing task with 0 delay, 1 in priority, the task method to execute and method args.
 
-`event_scheduler.enter(0, 1, self._method, method_args)`
-
-Stopping the event scheduler, which will now not be allowed to enter any tasks in this state until started again.
-
-`event_scheduler.stop()`
 
 ### Contact
 Please email phluentmed@gmail.com or open an issue if you need any help using the 
 code, have any questions, or even have some feature suggestions. If you're
-experiencing issues, please send the corresponding stack trace or screen to help us diagnose the issue.
+experiencing issues, please send the corresponding stack trace or screenshot to help us diagnose the issue.
+
+<ins>Recommended Email format: </ins>
+
+Subject: EventScheduler - [Issue]
+
+Steps to reproduce: (Please include code snippets or stack trace where possible)
+
+Device used:
+
+Platform: 
+
+Actual result:
+
+Expected result:
+
+Comments:
