@@ -69,8 +69,7 @@ In this example we're going to be creating a bank account and managing transacti
 
 Here in this example it's important to have an accurate balance. The transactions we'll focus on are deposit and withdraw for this case.
 
-class BankAccount:
-
+`class BankAccount:
     def __init__(self, balance=0):
         self.balance = balance
 
@@ -92,7 +91,7 @@ class BankAccount:
             print("The new balance is: " + str(self.balance) + "\n")
             return
         result_handler(-1)  # return code of -1 indicates failure
-        print("Insufficient funds \n")
+        print("Insufficient funds \n")`
 
 
 First thing we're going to do is import the from the EventScheduler package at the top of the file.
