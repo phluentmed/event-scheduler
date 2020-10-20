@@ -3,7 +3,7 @@
 - [Overview](#overview)
 - [Installing](#installing-dependencies)
 - [Features](#features)
-- [Usage](#usage)
+- [Example](#example)
 - [Contact](#contact)
 
 ### Overview
@@ -64,7 +64,7 @@ Method will prevent the event scheduler from taking any more tasks. If the sched
 
 Is now a private method and should not be called. 
  
-### Usage
+### Example
 In this example we're going to be creating a bank account and managing transactions with an event scheduler.
 
 Here in this example it's important to have an accurate balance. The transactions we'll focus on are deposit and withdraw for this case.
@@ -96,9 +96,54 @@ class BankAccount:
         print("Insufficient funds \n")
 ```
 
-First thing we're going to do is import the from the EventScheduler package at the top of the file.
+```
+import BankAccount
+# Importing EventScheduler package 
+from EventScheduler_pkg.EventScheduler import EventScheduler
 
-`from EventScheduler_pkg.EventScheduler import EventScheduler`
+# Instantiating the event scheduler with the name
+scheduler = EventScheduler("transaction_threads")
+# Started the scheduler so it is able to take actions
+scheduler.start()
+account = BankAccount.BankAccount(100)
+
+
+def atm_chicago():
+    def is_transaction_successful(successful):
+        if successful:
+            print("Chicago ATM Transaction Successful")
+        else:
+            print("Chicago ATM Transaction Failed")
+
+    scheduler.enter(1, 1, account.withdraw, [90, is_transaction_successful])  # note priority is at 1
+
+
+def atm_los_angeles():
+    def is_transaction_successful(successful):
+        if successful:
+            print("Los Angeles ATM Transaction Successful")
+        else:
+            print("Los Angeles ATM Transaction Failed")
+
+    scheduler.enter(1, 0, account.withdraw, [20, is_transaction_successful])  # note priority here is 0
+
+
+# Example 1 since Los Angeles has higher priority it will execute first
+atm_chicago()
+atm_los_angeles()
+
+'''
+Los Angeles ATM Transaction Successful
+You have withdrawn: 20
+The new balance is: 80
+
+Chicago ATM Transaction Failed
+Insufficient funds
+'''
+
+# Stopping the scheduler so no more actions can be done
+scheduler.stop()
+```
 
 
 

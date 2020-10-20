@@ -1,9 +1,12 @@
 import BankAccount
+# Importing EventScheduler package
 from EventScheduler_pkg.EventScheduler import EventScheduler
 
+# Instantiating the event scheduler with the name
 scheduler = EventScheduler("transaction_threads")
+# Started the scheduler so it is able to take actions
 scheduler.start()
-account = BankAccount.BankAccount(100)
+account = BankAccount.BankAccount(100)  # Initial balance of 100 dollars in the count
 
 
 def atm_chicago():
@@ -38,4 +41,6 @@ The new balance is: 80
 Chicago ATM Transaction Failed
 Insufficient funds
 '''
+
+# Stopping the scheduler so no more actions can be done
 scheduler.stop()
