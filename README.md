@@ -7,7 +7,7 @@
 - [Contact](#contact)
 
 ### Overview
-Phluent's always on the Event scheduler is a modified version of the native python [library](https://docs.python.org/3/library/sched.html). The modification is for the event scheduler to always be running even with no tasks. This makes it handy for not always spinning up a new EventScheduler every time a task is received.
+Phluent's always on the Event scheduler is a modified version of the native python [library](https://docs.python.org/3/library/sched.html). The modification is for the event scheduler to always be running even with no actions. This makes it handy for not always spinning up a new EventScheduler every time the queue is empty.
 
 [EventScheduler GitHub](https://github.com/phluentmed/EventScheduler)
 
@@ -54,18 +54,18 @@ To download directly you can visit this [link](https://pypi.org/project/Event-Sc
 
 `scheduler.start()` 
 
-Method triggers the EventScheduler to start running, and will start executing tasks in its queue depending on delay and priority.
+Method triggers the EventScheduler to start running, and will start executing actions in its queue depending on delay and priority.
 
 `scheduler.stop()` 
 
-Method will prevent the event scheduler from taking any more tasks. If the scheduler has tasks in the queue, the scheduler goes in stopping status until it's empty then becomes stopped else it goes to stopped directly.
+Method will prevent the event scheduler from taking any more actions. If the scheduler has actions in the queue, the scheduler goes in stopping status until it's empty then becomes stopped else it goes to stopped directly.
 
 `scheduler.run(blocking=True)`
 
 Is now a private method and should not be called. 
  
 ### Example
-In this example we're going to be creating a bank account and managing transactions with an event scheduler.
+In this example we're going to be creating a bank account and managing transactions with an event scheduler. Deposit and withdraw will be our "actions".
 
 Here in this example it's important to have an accurate balance. The transactions we'll focus on are deposit and withdraw for this case.
 
@@ -141,7 +141,7 @@ Chicago ATM Transaction Failed
 Insufficient funds
 '''
 
-# Stopping the scheduler so no more actions can be done
+# Stopping the scheduler so no more actions can be added
 scheduler.stop()
 ```
 
