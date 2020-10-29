@@ -23,4 +23,3 @@ class BankAccount:
             return
         result_handler(False, location)
         print("Insufficient funds \n")
-

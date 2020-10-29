@@ -75,62 +75,80 @@ class BankAccount:
     def __init__(self, balance=0):
         self.balance = balance
 
-    def deposit(self, deposit, result_handler):
+    def deposit(self, deposit, result_handler, location):
         if deposit > 0:
             self.balance += deposit
-            result_handler(0)  # return code of 0 indicates successful
+            result_handler(True, location)
             print("You have deposited: " + str(deposit))
             print("The new balance is: " + str(self.balance) + "\n")
             return
-        result_handler(-1)  # return code of -1 indicates failure
+        result_handler(False, location)
         print("Must deposit a positive amount \n")
 
-    def withdraw(self, withdrawal, result_handler):
+    def withdraw(self, withdrawal, result_handler, location):
+        withdrawal *= -1
         if withdrawal <= self.balance:
             self.balance -= withdrawal
-            result_handler(0)  # return code of 0 indicates successful
+            result_handler(True, location)
             print("You have withdrawn: " + str(withdrawal))
             print("The new balance is: " + str(self.balance) + "\n")
             return
-        result_handler(-1)  # return code of -1 indicates failure
+        result_handler(False, location)
         print("Insufficient funds \n")
+
 ```
 
 ```
 import BankAccount
-# Importing EventScheduler package 
+import threading
+# Importing EventScheduler from the package
 from EventScheduler_pkg.EventScheduler import EventScheduler
 
 # Instantiating the event scheduler with the name
+# EventScheduler(thread_name)
 scheduler = EventScheduler("transaction_threads")
-# Started the scheduler so it is able to take actions
+
+# Scheduler has been started and is able to take actions
 scheduler.start()
+
 account = BankAccount.BankAccount(100)
 
 
-def atm_chicago():
-    def is_transaction_successful(successful):
-        if successful:
-            print("Chicago ATM Transaction Successful")
-        else:
-            print("Chicago ATM Transaction Failed")
-
-    scheduler.enter(1, 1, account.withdraw, [90, is_transaction_successful])  # note priority is at 1
+def is_transaction_successful(successful, location):
+    if successful:
+        print(location + " ATM Transaction Successful")
+    else:
+        print(location + " ATM Transaction Failed")
 
 
-def atm_los_angeles():
-    def is_transaction_successful(successful):
-        if successful:
-            print("Los Angeles ATM Transaction Successful")
-        else:
-            print("Los Angeles ATM Transaction Failed")
+def atm_chicago_transactions(delay, priority, amount):
+    if amount < 0:
+        # scheduler.enter(delay, priority, argument=(), kwargs={})
+        scheduler.enter(delay, priority, account.withdraw, [amount, is_transaction_successful, "Chicago"])
+    else:
+        # scheduler.enter(delay, priority, argument=(), kwargs={})
+        scheduler.enter(delay, priority, account.deposit, [amount, is_transaction_successful, "Chicago"])
 
-    scheduler.enter(1, 0, account.withdraw, [20, is_transaction_successful])  # note priority here is 0
+
+def atm_los_angeles_transactions(delay, priority, amount):
+    if amount < 0:
+        # scheduler.enter(delay, priority, argument=(), kwargs={})
+        scheduler.enter(delay, priority, account.withdraw,
+                        [amount, is_transaction_successful, "Los Angeles"])
+    else:
+        # scheduler.enter(delay, priority, argument=(), kwargs={})
+        scheduler.enter(delay, priority, account.deposit,
+                        [amount, is_transaction_successful, "Los Angeles"])
 
 
-# Example 1 since Los Angeles has higher priority it will execute first
-atm_chicago()
-atm_los_angeles()
+# Current balance before transactions: 100
+# Example 1: Los Angeles has higher priority it will execute first
+thread_atm_chicago = threading.Thread(target=atm_chicago_transactions, args=[1, 1, -90], name="ATM Chicago")
+thread_atm_los_angeles = threading.Thread(target=atm_los_angeles_transactions, args=[1, 0, -20], name="ATM Los Angeles")
+thread_atm_chicago.start()
+thread_atm_los_angeles.start()
+thread_atm_chicago.join()
+thread_atm_los_angeles.join()
 
 '''
 Los Angeles ATM Transaction Successful
@@ -141,7 +159,28 @@ Chicago ATM Transaction Failed
 Insufficient funds
 '''
 
-# Stopping the scheduler so no more actions can be added
+# Current balance before transactions: 80
+# Example 2: Chicago's ATM will deposit first for having a lower delay and Los Angeles' ATM will be able to withdraw
+# from the new balance
+thread_atm_chicago = threading.Thread(target=atm_chicago_transactions, args=[3, 1, 20], name="ATM Chicago")
+thread_atm_los_angeles = threading.Thread(
+    target=atm_los_angeles_transactions, args=[5, 1, -100], name="ATM Los Angeles")
+thread_atm_chicago.start()
+thread_atm_los_angeles.start()
+thread_atm_chicago.join()
+thread_atm_los_angeles.join()
+
+'''
+Chicago ATM Transaction Successful
+You have deposited: 20
+The new balance is: 100
+
+Los Angeles ATM Transaction Successful
+You have withdrawn: 100
+The new balance is: 0
+'''
+
+# Stopping the scheduler so no more actions can be added to the queue
 scheduler.stop()
 ```
 
