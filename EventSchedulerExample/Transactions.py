@@ -1,4 +1,5 @@
 import BankAccount
+import threading
 # Importing EventScheduler package
 from EventScheduler_pkg.EventScheduler import EventScheduler
 
@@ -9,29 +10,37 @@ scheduler.start()
 account = BankAccount.BankAccount(100)  # Initial balance of 100 dollars in the count
 
 
-def atm_chicago():
-    def is_transaction_successful(successful):
-        if successful:
-            print("Chicago ATM Transaction Successful")
-        else:
-            print("Chicago ATM Transaction Failed")
-
-    scheduler.enter(1, 1, account.withdraw, [90, is_transaction_successful])  # note priority is at 1
+def is_transaction_successful(successful, location):
+    if successful:
+        print(location + " ATM Transaction Successful")
+    else:
+        print(location + " ATM Transaction Failed")
 
 
-def atm_los_angeles():
-    def is_transaction_successful(successful):
-        if successful:
-            print("Los Angeles ATM Transaction Successful")
-        else:
-            print("Los Angeles ATM Transaction Failed")
+def atm_chicago_transactions(delay, priority, amount):
+    if amount < 0:
+        # scheduler()
+        scheduler.enter(delay, priority, account.withdraw, [amount, is_transaction_successful, "Chicago"])
+    else:
+        scheduler.enter(delay, priority, account.deposit, [amount, is_transaction_successful, "Chicago"])
 
-    scheduler.enter(1, 0, account.withdraw, [20, is_transaction_successful])  # note priority here is 0
+
+def atm_los_angeles_transactions(delay, priority, amount):
+    if amount < 0:
+        scheduler.enter(delay, priority, account.withdraw,
+                        [amount, is_transaction_successful, "Los Angeles"])
+    else:
+        scheduler.enter(delay, priority, account.deposit,
+                        [amount, is_transaction_successful, "Los Angeles"])
 
 
 # Example 1 since Los Angeles has higher priority it will execute first
-atm_chicago()
-atm_los_angeles()
+thread_atm_chicago = threading.Thread(target=atm_chicago_transactions, args=[1, 1, -90], name="ATM Chicago")
+thread_atm_los_angeles = threading.Thread(target=atm_los_angeles_transactions, args=[1, 0, -20], name="ATM Los Angeles")
+thread_atm_chicago.start()
+thread_atm_los_angeles.start()
+thread_atm_chicago.join()
+thread_atm_los_angeles.join()
 
 '''
 Los Angeles ATM Transaction Successful
