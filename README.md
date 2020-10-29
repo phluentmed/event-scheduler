@@ -7,7 +7,7 @@
 - [Contact](#contact)
 
 ### Overview
-Phluent's always on the Event scheduler is a modified version of the native python [library](https://docs.python.org/3/library/sched.html). The modification is for the event scheduler to always be running even with no actions. This makes it handy for not always spinning up a new EventScheduler every time the queue is empty.
+Phluent's always on the Event scheduler is a modified version of the native python [library's scheduler](https://docs.python.org/3/library/sched.html). The modification is for the event scheduler to always be running even with no actions. This makes it handy for not always spinning up a new EventScheduler every time the queue is empty.
 
 [EventScheduler GitHub](https://github.com/phluentmed/EventScheduler)
 
@@ -21,7 +21,7 @@ To install the always-on event scheduler type the following command in the termi
 `pip install Event-Scheduler-pkg-Phluent-Med==0.0.1`
 
 
-To download directly you can visit this [link](https://pypi.org/project/Event-Scheduler-pkg-Phluent-Med/0.0.1/) or visit the [GitHub repository](https://github.com/phluentmed/EventScheduler).
+To download directly you can visit [PyPi](https://pypi.org/project/Event-Scheduler-pkg-Phluent-Med/0.0.1/) or the [GitHub repository](https://github.com/phluentmed/EventScheduler).
 
 ### Features
 <ins> [Previous features:](https://docs.python.org/3/library/sched.html#scheduler-objects) </ins>
@@ -58,7 +58,7 @@ Method triggers the EventScheduler to start running, and will start executing ac
 
 `scheduler.stop()` 
 
-Method will prevent the event scheduler from taking any more actions. If the scheduler has actions in the queue, the scheduler goes in stopping status until it's empty then becomes stopped else it goes to stopped directly.
+Method will prevent the event scheduler from taking any more actions. If the scheduler has actions in the queue, the scheduler goes in stopping status until it's empty then becomes stopped.
 
 `scheduler.run(blocking=True)`
 
