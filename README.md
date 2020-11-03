@@ -7,21 +7,20 @@
 - [Contact](#contact)
 
 ### Overview
-Phluent's always on the Event scheduler is a modified version of the native python [library's scheduler](https://docs.python.org/3/library/sched.html). The modification is for the event scheduler to always be running even with no actions. This makes it handy for not always spinning up a new EventScheduler every time the queue is empty.
+Phluent's always on event scheduler is a modified version of the native python [library's scheduler](https://docs.python.org/3/library/sched.html). This means the event scheduler will always be running even with no actions. With python's sched module, a call to run() has to be made every time the number of pending events reaches zero and new events are added. With EventScheduler, only one call to start() needs to be made to start the event scheduler and it's ready to accept and run actions even when empty.
 
 [EventScheduler GitHub](https://github.com/phluentmed/EventScheduler)
 
 Refer to [sched.scheduler](https://github.com/python/cpython/blob/3.8/Lib/sched.py) for the descriptions of the non-modified functions.
 
 ### Installing
-You should already have pip installed if you're using python > 3.4, in the case you don't please visit this [link](https://pip.pypa.io/en/stable/installing/) to install it.
+You should already have pip installed if you're using python > 3.4. If you don't please visit this [link](https://pip.pypa.io/en/stable/installing/) to install it.
 
-To install the always-on event scheduler type the following command in the terminal.
+To install the always-on event scheduler, type the following command in the terminal.
 
 `pip install Event-Scheduler-pkg-Phluent-Med==0.0.1`
 
-
-To download directly you can visit [PyPi](https://pypi.org/project/Event-Scheduler-pkg-Phluent-Med/0.0.1/) or the [GitHub repository](https://github.com/phluentmed/EventScheduler).
+To download directly visit [PyPi](https://pypi.org/project/Event-Scheduler-pkg-Phluent-Med/0.0.1/) or the [GitHub repository](https://github.com/phluentmed/EventScheduler).
 
 ### Features
 <ins> [Previous features:](https://docs.python.org/3/library/sched.html#scheduler-objects) </ins>
@@ -54,18 +53,18 @@ To download directly you can visit [PyPi](https://pypi.org/project/Event-Schedul
 
 `scheduler.start()` 
 
-Method triggers the EventScheduler to start running, and will start executing actions in its queue depending on delay and priority.
+Triggers the EventScheduler to start running, and will start executing actions in its queue depending on delay and priority. A value of 0 is returned on successful start up and -1 on failure to start.
 
 `scheduler.stop()` 
 
-Method will prevent the event scheduler from taking any more actions. If the scheduler has actions in the queue, the scheduler goes in stopping status until it's empty then becomes stopped.
+Will prevent the event scheduler from taking any more actions. The event scheduler will execute the remaining actions (if any). A value of 0 is returned on successful stop and -1 on failure to stop.
 
 `scheduler.run(blocking=True)`
 
-Is now a private method and should not be called. 
+This method is now private and should not be called.
  
 ### Example
-In this example we're going to be creating a bank account and managing transactions with an event scheduler. Deposit and withdraw will be our "actions".
+In this example,git we're going to be creating a bank account and managing transactions with an event scheduler. Deposit and withdraw will be our "actions".
 
 Here in this example it's important to have an accurate balance. The transactions we'll focus on are deposit and withdraw for this case.
 
@@ -171,6 +170,13 @@ thread_atm_chicago.join()
 thread_atm_los_angeles.join()
 
 '''
+Los Angeles ATM Transaction Successful
+You have withdrawn: 20
+The new balance is: 80
+
+Chicago ATM Transaction Failed
+Insufficient funds
+
 Chicago ATM Transaction Successful
 You have deposited: 20
 The new balance is: 100
@@ -178,6 +184,14 @@ The new balance is: 100
 Los Angeles ATM Transaction Successful
 You have withdrawn: 100
 The new balance is: 0
+
+Los Angeles ATM Transaction Successful
+You have deposited: 60
+The new balance is: 60
+
+Chicago ATM Transaction Successful
+You have withdrawn: 20
+The new balance is: 40
 '''
 
 # Stopping the scheduler so no more actions can be added to the queue
