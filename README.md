@@ -53,20 +53,20 @@ To download directly visit [PyPi](https://pypi.org/project/Event-Scheduler-pkg-P
 
 `scheduler.start()` 
 
-Triggers the EventScheduler to start running, and will start executing actions in its queue depending on delay and priority. A value of 0 is returned on successful start up and -1 on failure to start.
+Triggers the EventScheduler to start running, and will start executing actions in its queue depending on delay and priority. A value of 0 is returned on a successful start up and -1 on failure to start.
 
 `scheduler.stop()` 
 
-Will prevent the event scheduler from taking any more actions. The event scheduler will execute the remaining actions (if any). A value of 0 is returned on successful stop and -1 on failure to stop.
+Will prevent the event scheduler from taking any more actions. The event scheduler will execute the remaining actions (if any). A value of 0 is returned on a successful stop and -1 on failure to stop.
 
 `scheduler.run(blocking=True)`
 
 This method is now private and should not be called.
  
 ### Example
-In this example,git we're going to be creating a bank account and managing transactions with an event scheduler. Deposit and withdraw will be our "actions".
+In this example, we're going to be creating a bank account and managing transactions with an event scheduler. Deposit and withdraw will be our "actions".
 
-Here in this example it's important to have an accurate balance. The transactions we'll focus on are deposit and withdraw for this case.
+Here in this example it's important to have an accurate balance. The transactions we'll focus on are deposit and withdraw.
 
 ```
 class BankAccount:
@@ -170,13 +170,6 @@ thread_atm_chicago.join()
 thread_atm_los_angeles.join()
 
 '''
-Los Angeles ATM Transaction Successful
-You have withdrawn: 20
-The new balance is: 80
-
-Chicago ATM Transaction Failed
-Insufficient funds
-
 Chicago ATM Transaction Successful
 You have deposited: 20
 The new balance is: 100

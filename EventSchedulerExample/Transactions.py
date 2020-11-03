@@ -60,7 +60,8 @@ Insufficient funds
 
 # Current balance before transactions: 80
 # Example 2: Chicago's ATM will deposit first for having a lower delay and Los Angeles' ATM will be able to withdraw
-# from the new balance
+# from the new balance. Los Angeles ATM will be able to deposit before Chicago's ATM withdraws due to higher priority
+# thus making both transactions successful.
 thread_atm_chicago_deposit = threading.Thread(target=atm_chicago_transactions, args=[3, 1, 20], name="ATM Chicago")
 thread_atm_los_angeles_withdraw = threading.Thread(
     target=atm_los_angeles_transactions, args=[5, 1, -100], name="ATM Los Angeles")
@@ -79,13 +80,6 @@ thread_atm_los_angeles_deposit.join()
 thread_atm_los_angeles_withdraw.join()
 
 '''
-Los Angeles ATM Transaction Successful
-You have withdrawn: 20
-The new balance is: 80
-
-Chicago ATM Transaction Failed
-Insufficient funds
-
 Chicago ATM Transaction Successful
 You have deposited: 20
 The new balance is: 100
