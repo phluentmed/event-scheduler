@@ -14,7 +14,7 @@ Phluent's always on event scheduler is a modified version of the native python [
 Refer to [sched.scheduler](https://github.com/python/cpython/blob/3.8/Lib/sched.py) for the descriptions of the non-modified functions.
 
 ### Installing
-You should already have pip installed if you're using python > 3.4. If you don't please visit this [link](https://pip.pypa.io/en/stable/installing/) to install it.
+You should already have pip installed if you're using python > 3.4. If you don't, please visit this [link](https://pip.pypa.io/en/stable/installing/) to install it.
 
 To install the always-on event scheduler, type the following command in the terminal.
 
@@ -35,7 +35,7 @@ To download directly visit [PyPi](https://pypi.org/project/Event-Scheduler-pkg-P
 
 `scheduler.enter(delay, priority, action, argument=(), kwargs={})`
 
->Schedule an event for delay more time units. Other than the relative time, the other arguments, the effect and the return value are the same as those for enterabs().
+>Delay is a relative time unit from when it enters the queue. Other than the delay parameter, this function behaves identical to enterabs().
 
 `scheduler.cancel(event)`
 
@@ -120,30 +120,35 @@ def is_transaction_successful(successful, location):
         print(location + " ATM Transaction Failed")
 
 
-def atm_chicago_transactions(delay, priority, amount):
-    if amount < 0:
-        # scheduler.enter(delay, priority, argument=(), kwargs={})
-        scheduler.enter(delay, priority, account.withdraw, [amount, is_transaction_successful, "Chicago"])
-    else:
-        # scheduler.enter(delay, priority, argument=(), kwargs={})
-        scheduler.enter(delay, priority, account.deposit, [amount, is_transaction_successful, "Chicago"])
+def atm_chicago_transactions(transactions):
+    for transaction in transactions:
+        delay, priority, amount = transaction
+        if amount < 0:
+            # scheduler.enter(delay, priority, argument=(), kwargs={})
+            scheduler.enter(delay, priority, account.withdraw, [amount, is_transaction_successful, "Chicago"])
+        else:
+            # scheduler.enter(delay, priority, argument=(), kwargs={})
+            scheduler.enter(delay, priority, account.deposit, [amount, is_transaction_successful, "Chicago"])
 
 
-def atm_los_angeles_transactions(delay, priority, amount):
-    if amount < 0:
-        # scheduler.enter(delay, priority, argument=(), kwargs={})
-        scheduler.enter(delay, priority, account.withdraw,
-                        [amount, is_transaction_successful, "Los Angeles"])
-    else:
-        # scheduler.enter(delay, priority, argument=(), kwargs={})
-        scheduler.enter(delay, priority, account.deposit,
-                        [amount, is_transaction_successful, "Los Angeles"])
+def atm_los_angeles_transactions(transactions):
+    for transaction in transactions:
+        delay, priority, amount = transaction
+        if amount < 0:
+            # scheduler.enter(delay, priority, argument=(), kwargs={})
+            scheduler.enter(delay, priority, account.withdraw,
+                            [amount, is_transaction_successful, "Los Angeles"])
+        else:
+            # scheduler.enter(delay, priority, argument=(), kwargs={})
+            scheduler.enter(delay, priority, account.deposit,
+                            [amount, is_transaction_successful, "Los Angeles"])
 
 
 # Current balance before transactions: 100
 # Example 1: Los Angeles has higher priority it will execute first
-thread_atm_chicago = threading.Thread(target=atm_chicago_transactions, args=[1, 1, -90], name="ATM Chicago")
-thread_atm_los_angeles = threading.Thread(target=atm_los_angeles_transactions, args=[1, 0, -20], name="ATM Los Angeles")
+thread_atm_chicago = threading.Thread(target=atm_chicago_transactions, args=[[(1, 1, -90)]], name="ATM Chicago")
+thread_atm_los_angeles = threading.Thread(
+    target=atm_los_angeles_transactions, args=[[(1, 0, -20)]], name="ATM Los Angeles")
 thread_atm_chicago.start()
 thread_atm_los_angeles.start()
 thread_atm_chicago.join()
@@ -160,12 +165,16 @@ Insufficient funds
 
 # Current balance before transactions: 80
 # Example 2: Chicago's ATM will deposit first for having a lower delay and Los Angeles' ATM will be able to withdraw
-# from the new balance
-thread_atm_chicago = threading.Thread(target=atm_chicago_transactions, args=[3, 1, 20], name="ATM Chicago")
+# from the new balance. Los Angeles ATM will be able to deposit before Chicago's ATM withdraws due to higher priority
+# thus making both transactions successful.
+thread_atm_chicago = threading.Thread(
+    target=atm_chicago_transactions, args=[[(3, 1, 20), (5, 2, -20)]], name="ATM Chicago")
 thread_atm_los_angeles = threading.Thread(
-    target=atm_los_angeles_transactions, args=[5, 1, -100], name="ATM Los Angeles")
+    target=atm_los_angeles_transactions, args=[[(4, 1, -100), (5, 1, 60)]], name="ATM Los Angeles")
+
 thread_atm_chicago.start()
 thread_atm_los_angeles.start()
+
 thread_atm_chicago.join()
 thread_atm_los_angeles.join()
 
