@@ -64,9 +64,11 @@ Insufficient funds
 '''
 
 # Current balance before transactions: 80
-# Example 2: Chicago's ATM will deposit first for having a lower delay and Los Angeles' ATM will be able to withdraw
-# from the new balance. Los Angeles ATM will be able to deposit before Chicago's ATM withdraws due to higher priority
-# thus making both transactions successful.
+# Example 2: Chicago's ATM will deposit first for having the lowest delay with 3. Los Angele's ATM withdrawal of a 100
+# dollars has the 2nd lowest delay ATM which is why it goes next and can withdraw from the new balance. There are two
+# transactions left, Los Angele's ATM deposit and Chicago's ATM withdrawal. They both have the same delay of 5.
+# Los Angele's ATM deposit of 60 dollars  will go first since it has a priority of one over Chicago ATM's 20 dollar
+# withdrawal which has 2.
 thread_atm_chicago = threading.Thread(
     target=atm_chicago_transactions, args=[[(3, 1, 20), (5, 2, -20)]], name="ATM Chicago")
 thread_atm_los_angeles = threading.Thread(
