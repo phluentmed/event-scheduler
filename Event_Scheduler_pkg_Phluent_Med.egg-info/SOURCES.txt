@@ -1,6 +1,0 @@
-README.md
-setup.py
-Event_Scheduler_pkg_Phluent_Med.egg-info/PKG-INFO
-Event_Scheduler_pkg_Phluent_Med.egg-info/SOURCES.txt
-Event_Scheduler_pkg_Phluent_Med.egg-info/dependency_links.txt
-Event_Scheduler_pkg_Phluent_Med.egg-info/top_level.txt
