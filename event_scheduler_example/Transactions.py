@@ -1,7 +1,7 @@
 import BankAccount
 import threading
 # Importing EventScheduler from the package
-from EventScheduler_pkg.EventScheduler import EventScheduler
+from event_scheduler import EventScheduler
 
 # Instantiating the event scheduler with the name
 # EventScheduler(thread_name)

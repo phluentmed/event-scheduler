@@ -18,12 +18,16 @@ You should already have pip installed if you're using python > 3.4. If you don't
 
 To install the always-on event scheduler, type the following command in the terminal.
 
-`pip install Event-Scheduler-pkg-Phluent-Med==0.0.1`
+`pip install event-scheduler`
 
-To download directly visit [PyPi](https://pypi.org/project/Event-Scheduler-pkg-Phluent-Med/0.0.1/) or the [GitHub repository](https://github.com/phluentmed/EventScheduler).
+To import the module, add the following lines in your Python file.
+
+`from event_scheduler import EventScheduler`
+
+To download directly visit [PyPi](https://pypi.org/project/event-scheduler/) or the [GitHub repository](https://github.com/phluentmed/PythonEventScheduler).
 
 ### Features
-<ins> [Previous features:](https://docs.python.org/3/library/sched.html#scheduler-objects) </ins>
+##### [Previous features:](https://docs.python.org/3/library/sched.html#scheduler-objects) 
 
 `scheduler.enterabs(time, priority, action, argument=(), kwargs={})`
 >
@@ -49,7 +53,7 @@ To download directly visit [PyPi](https://pypi.org/project/Event-Scheduler-pkg-P
 
 > Read-only attribute returning a list of upcoming events in the order they will be run. Each event is shown as a named tuple with the following fields: time, priority, action, argument, kwargs.
 
-<ins>[New features:](https://github.com/phluentmed/EventScheduler#readme)</ins>
+##### [New features:](https://github.com/phluentmed/PythonEventScheduler#readme)
 
 `scheduler.start()` 
 
@@ -64,7 +68,7 @@ Will prevent the event scheduler from taking any more actions. The event schedul
 This method is now private and should not be called.
  
 ### Example
-Please refer to this [code repository](https://github.com/phluentmed/EventScheduler/tree/master/EventSchedulerExample) for the example. We're going to be creating a bank account and managing transactions with an event scheduler.
+Please refer to this [code repository](https://github.com/phluentmed/PythonEventScheduler/tree/master/event_scheduler_example) for the example. We're going to be creating a bank account and managing transactions with an event scheduler.
 
 In this scenario it's important to have an accurate balance. The "actions" we'll focus on are deposit and withdraw.
 
