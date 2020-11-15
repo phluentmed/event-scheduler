@@ -9,7 +9,7 @@
 ### Overview
 Phluent's always on event scheduler is a modified version of the native python [library's scheduler](https://docs.python.org/3/library/sched.html). This means the event scheduler will always be running even with no actions. With python's sched module, a call to run() has to be made every time the number of pending events reaches zero and new events are added. With EventScheduler, only one call to start() needs to be made to start the event scheduler and it's ready to accept and run actions even when empty.
 
-[EventScheduler GitHub](https://github.com/phluentmed/EventScheduler)
+[EventScheduler GitHub](https://github.com/phluentmed/PythonEventScheduler)
 
 Refer to [sched.scheduler](https://github.com/python/cpython/blob/3.8/Lib/sched.py) for the descriptions of the non-modified functions.
 
