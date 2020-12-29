@@ -1,4 +1,4 @@
-from event_scheduler import EventScheduler
+from event_scheduler.event_scheduler import EventScheduler
 import unittest
 import time
 
