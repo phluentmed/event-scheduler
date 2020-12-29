@@ -138,7 +138,6 @@ class EventScheduler(sched.scheduler):
             self._cv.notify()
         # TODO: Figure out the max time that we can put in here that can
         #  work for all kinds of time functions
-
         with self._scheduler_status_lock:
             self._event_thread.join()
             self._scheduler_status = self.SchedulerStatus.STOPPED
