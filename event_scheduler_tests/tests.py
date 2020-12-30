@@ -1,5 +1,9 @@
+import sys
 import unittest
 
-unit_tests = unittest.TestLoader().discover('unit_tests', '*tests.py')
+unit_tests = unittest.TestLoader().discover('event_scheduler_tests/unit_tests',
+                                            '*tests.py',
+                                            '.')
 
-unittest.TextTestRunner().run(unit_tests)
+result = unittest.TextTestRunner().run(unit_tests)
+sys.exit(not result.wasSuccessful())
