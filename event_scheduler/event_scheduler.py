@@ -29,12 +29,15 @@ class EventScheduler(sched.scheduler):
         Returns an ID for the event which can be used to remove it,
         if necessary.
         """
+        if kwargs is _sentinel:
+            kwargs = {}
         with self._scheduler_status_lock:
             if self._scheduler_status != self.SchedulerStatus.RUNNING:
                 # TODO: Add error message
                 return None
             event = super().enterabs(time, priority, action, argument, kwargs)
-            self._cv.notify()
+            with self._cv:
+                self._cv.notify()
             return event
 
     def enter(self, delay, priority, action, argument=(), kwargs=_sentinel):
@@ -104,12 +107,16 @@ class EventScheduler(sched.scheduler):
                     delay = False
                     pop(q)
                 if delay:
-                    timer = threading.Timer(time-now, cv.notify)
+                    timer = threading.Timer(time-now, self._notify)
                     timer.start()
                     continue
 
                 action(*argument, **kwargs)
                 delayfunc(0)  # Let other threads run
+
+    def _notify(self):
+        with self._cv:
+            self._cv.notify()
 
     def start(self):
         with self._scheduler_status_lock:
@@ -126,9 +133,11 @@ class EventScheduler(sched.scheduler):
                 # TODO: Add error message
                 return -1
             self._scheduler_status = self.SchedulerStatus.STOPPING
-            super().enterabs(sys.maxsize, sys.maxsize, None)
-            # TODO: Figure out the max time that we can put in here that can
-            #  work for all kinds of time functions
+        super().enterabs(sys.maxsize, sys.maxsize, None)
+        with self._cv:
+            self._cv.notify()
+        # TODO: Figure out the max time that we can put in here that can
+        #  work for all kinds of time functions
 
         with self._scheduler_status_lock:
             self._event_thread.join()
