@@ -4,9 +4,11 @@ import sched
 import sys
 import threading
 
+_sentinel = object()
 
 # Refer to sched.scheduler for a description of non-modified functions
 # https://github.com/python/cpython/blob/3.8/Lib/sched.py
+
 
 class EventScheduler(sched.scheduler):
     class SchedulerStatus(Enum):
@@ -18,28 +20,42 @@ class EventScheduler(sched.scheduler):
         super().__init__()
         self._scheduler_status_lock = threading.RLock()
         self._scheduler_status = self.SchedulerStatus.STOPPED
-        self._event_thread = threading.Thread(target=self.run, name=thread_name)
+        self._event_thread = threading.Thread(target=self.run,
+                                              name=thread_name)
+        # Condition variable to notify the event thread when there's a new
+        # event or when the deadline of the soonest event has passed.
+        self._cv = threading.Condition(self._lock)
+        # If we've looked at the front of the queue and the event isn't ready
+        # to execute, we set a timer for the remaining time. If a new event is
+        # added to the queue, then we cancel the timer and set it to None.
+        self._timer = None
 
-    def enterabs(self, time, priority, action, argument=(), kwargs={}):
+    def _notify(self):
+        with self._cv:
+            self._cv.notify()
+
+    def enterabs(self, time, priority, action, argument=(), kwargs=_sentinel):
         """Enter a new event in the queue at an absolute time.
         Returns an ID for the event which can be used to remove it,
         if necessary.
         """
+        if kwargs is _sentinel:
+            kwargs = {}
         with self._scheduler_status_lock:
             if self._scheduler_status != self.SchedulerStatus.RUNNING:
-                # TODO: Add error message
                 return None
-            super().enterabs(time, priority, action, argument, kwargs)
+            event = super().enterabs(time, priority, action, argument, kwargs)
+            # Notify the event thread about a new event in the queue.
+            self._notify()
+            return event
 
-    def enter(self, delay, priority, action, argument=(), kwargs={}):
+    def enter(self, delay, priority, action, argument=(), kwargs=_sentinel):
         """A variant that specifies the time as a relative time.
         This is actually the more commonly used interface.
         """
-        with self._scheduler_status_lock:
-            if self._scheduler_status != self.SchedulerStatus.RUNNING:
-                # TODO: Add error message
-                return None
-            return super().enter(delay, priority, action, argument, kwargs)
+        time = self.timefunc() + delay
+        event = self.enterabs(time, priority, action, argument, kwargs)
+        return event
 
     def cancel(self, event):
         """Remove an event from the queue.
@@ -48,14 +64,13 @@ class EventScheduler(sched.scheduler):
         """
         with self._scheduler_status_lock:
             if self._scheduler_status != self.SchedulerStatus.RUNNING:
-                # TODO: Add error message
                 return -1
-        super().cancel(event)
-        return 0
+            super().cancel(event)
+            self._notify()
+            return 0
 
     def run(self):
-        # Taken from the python library and slightly modified for an
-        # always-on event scheduler. SHOULD NOT BE CALLED DIRECTLY.
+        # SHOULD NOT BE CALLED DIRECTLY.
 
         """Execute events until the queue is empty.
         If blocking is False executes the scheduled events due to
@@ -78,15 +93,19 @@ class EventScheduler(sched.scheduler):
         """
         # localize variable access to minimize overhead
         # and to improve thread safety
-        lock = self._lock
+        cv = self._cv
         q = self._queue
+        timer = self._timer
         delayfunc = self.delayfunc
         timefunc = self.timefunc
         pop = heapq.heappop
         while True:
-            with lock:
-                if not q:
-                    continue
+            with cv:
+                if not q or timer:
+                    cv.wait()
+                if timer:
+                    timer.cancel()
+                    timer = None
                 time, priority, action, argument, kwargs = q[0]
                 if priority == sys.maxsize:
                     pop(q)
@@ -97,16 +116,19 @@ class EventScheduler(sched.scheduler):
                 else:
                     delay = False
                     pop(q)
-            if delay:
-                delayfunc(time - now)
-            else:
+                if delay:
+                    # Initialize a timer to wake up this thread when the first
+                    # event is ready to execute.
+                    timer = threading.Timer(time-now, self._notify)
+                    timer.start()
+                    continue
+
                 action(*argument, **kwargs)
                 delayfunc(0)  # Let other threads run
 
     def start(self):
         with self._scheduler_status_lock:
             if self._scheduler_status != self.SchedulerStatus.STOPPED:
-                # TODO: Add error message
                 return -1
             self._event_thread.start()
             self._scheduler_status = self.SchedulerStatus.RUNNING
@@ -115,12 +137,14 @@ class EventScheduler(sched.scheduler):
     def stop(self):
         with self._scheduler_status_lock:
             if self._scheduler_status != self.SchedulerStatus.RUNNING:
-                # TODO: Add error message
                 return -1
             self._scheduler_status = self.SchedulerStatus.STOPPING
-            super().enterabs(sys.maxsize, sys.maxsize, None)
-            # TODO: Fix this hackiness
-
+        super().enterabs(sys.maxsize, sys.maxsize, None)
+        # Notify the event thread about a new event in the queue (in this case,
+        # it's the thread terminating event)
+        self._notify()
+        # TODO: Figure out the max time that we can put in here that can
+        #  work for all kinds of time functions
         with self._scheduler_status_lock:
             self._event_thread.join()
             self._scheduler_status = self.SchedulerStatus.STOPPED
