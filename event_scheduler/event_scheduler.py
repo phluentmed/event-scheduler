@@ -30,6 +30,10 @@ class EventScheduler(sched.scheduler):
         # added to the queue, then we cancel the timer and set it to None.
         self._timer = None
 
+    def _notify(self):
+        with self._cv:
+            self._cv.notify()
+
     def enterabs(self, time, priority, action, argument=(), kwargs=_sentinel):
         """Enter a new event in the queue at an absolute time.
         Returns an ID for the event which can be used to remove it,
@@ -42,8 +46,7 @@ class EventScheduler(sched.scheduler):
                 return None
             event = super().enterabs(time, priority, action, argument, kwargs)
             # Notify the event thread about a new event in the queue.
-            with self._cv:
-                self._cv.notify()
+            self._notify()
             return event
 
     def enter(self, delay, priority, action, argument=(), kwargs=_sentinel):
@@ -63,11 +66,11 @@ class EventScheduler(sched.scheduler):
             if self._scheduler_status != self.SchedulerStatus.RUNNING:
                 return -1
             super().cancel(event)
+            self._notify()
             return 0
 
     def run(self):
-        # Taken from the python library and slightly modified for an
-        # always-on event scheduler. SHOULD NOT BE CALLED DIRECTLY.
+        # SHOULD NOT BE CALLED DIRECTLY.
 
         """Execute events until the queue is empty.
         If blocking is False executes the scheduled events due to
@@ -123,10 +126,6 @@ class EventScheduler(sched.scheduler):
                 action(*argument, **kwargs)
                 delayfunc(0)  # Let other threads run
 
-    def _notify(self):
-        with self._cv:
-            self._cv.notify()
-
     def start(self):
         with self._scheduler_status_lock:
             if self._scheduler_status != self.SchedulerStatus.STOPPED:
@@ -143,8 +142,7 @@ class EventScheduler(sched.scheduler):
         super().enterabs(sys.maxsize, sys.maxsize, None)
         # Notify the event thread about a new event in the queue (in this case,
         # it's the thread terminating event)
-        with self._cv:
-            self._cv.notify()
+        self._notify()
         # TODO: Figure out the max time that we can put in here that can
         #  work for all kinds of time functions
         with self._scheduler_status_lock:
