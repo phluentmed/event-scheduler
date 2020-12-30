@@ -63,6 +63,7 @@ class EventSchedulerTests(unittest.TestCase):
         event_scheduler.stop()
 
     # TODO: Make test less flakey (failure depends on speed of execution)
+    @unittest.skip("Flakey test that depends on speed of execution.")
     def test_priority(self):
         event_scheduler = EventScheduler(TEST_THREAD)
         event_scheduler.start()
@@ -73,3 +74,17 @@ class EventSchedulerTests(unittest.TestCase):
         event_scheduler.enterabs(4, 1, insert_into_list, ('A', result_list))
         event_scheduler.stop()
         self.assertListEqual(result_list, ['A', 'B', 'C', 'D'])
+
+    def test_cancel_event(self):
+        event_scheduler = EventScheduler(TEST_THREAD)
+        event_scheduler.start()
+        result_list = []
+        event = event_scheduler.enterabs(2,
+                                         1,
+                                         insert_into_list,
+                                         ('A', result_list))
+        event_scheduler.enterabs(2, 3, insert_into_list, ('B', result_list))
+
+        event_scheduler.cancel(event)
+        event_scheduler.stop()
+        self.assertListEqual(result_list, ['B'])

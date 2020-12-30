@@ -20,8 +20,14 @@ class EventScheduler(sched.scheduler):
         super().__init__()
         self._scheduler_status_lock = threading.RLock()
         self._scheduler_status = self.SchedulerStatus.STOPPED
-        self._event_thread = threading.Thread(target=self.run, name=thread_name)
+        self._event_thread = threading.Thread(target=self.run,
+                                              name=thread_name)
+        # Condition variable to notify the event thread when there's a new
+        # event or when the deadline of the soonest event has passed.
         self._cv = threading.Condition(self._lock)
+        # If we've looked at the front of the queue and the event isn't ready
+        # to execute, we set a timer for the remaining time. If a new event is
+        # added to the queue, then we cancel the timer and set it to None.
         self._timer = None
 
     def enterabs(self, time, priority, action, argument=(), kwargs=_sentinel):
@@ -33,9 +39,9 @@ class EventScheduler(sched.scheduler):
             kwargs = {}
         with self._scheduler_status_lock:
             if self._scheduler_status != self.SchedulerStatus.RUNNING:
-                # TODO: Add error message
                 return None
             event = super().enterabs(time, priority, action, argument, kwargs)
+            # Notify the event thread about a new event in the queue.
             with self._cv:
                 self._cv.notify()
             return event
@@ -55,7 +61,6 @@ class EventScheduler(sched.scheduler):
         """
         with self._scheduler_status_lock:
             if self._scheduler_status != self.SchedulerStatus.RUNNING:
-                # TODO: Add error message
                 return -1
             super().cancel(event)
             return 0
@@ -95,7 +100,9 @@ class EventScheduler(sched.scheduler):
             with cv:
                 if not q or timer:
                     cv.wait()
-                timer = None
+                if timer:
+                    timer.cancel()
+                    timer = None
                 time, priority, action, argument, kwargs = q[0]
                 if priority == sys.maxsize:
                     pop(q)
@@ -107,6 +114,8 @@ class EventScheduler(sched.scheduler):
                     delay = False
                     pop(q)
                 if delay:
+                    # Initialize a timer to wake up this thread when the first
+                    # event is ready to execute.
                     timer = threading.Timer(time-now, self._notify)
                     timer.start()
                     continue
@@ -121,7 +130,6 @@ class EventScheduler(sched.scheduler):
     def start(self):
         with self._scheduler_status_lock:
             if self._scheduler_status != self.SchedulerStatus.STOPPED:
-                # TODO: Add error message
                 return -1
             self._event_thread.start()
             self._scheduler_status = self.SchedulerStatus.RUNNING
@@ -130,10 +138,11 @@ class EventScheduler(sched.scheduler):
     def stop(self):
         with self._scheduler_status_lock:
             if self._scheduler_status != self.SchedulerStatus.RUNNING:
-                # TODO: Add error message
                 return -1
             self._scheduler_status = self.SchedulerStatus.STOPPING
         super().enterabs(sys.maxsize, sys.maxsize, None)
+        # Notify the event thread about a new event in the queue (in this case,
+        # it's the thread terminating event)
         with self._cv:
             self._cv.notify()
         # TODO: Figure out the max time that we can put in here that can
