@@ -1,7 +1,10 @@
 from enum import Enum
 import heapq
+from sched import Event
 import sched
 import sys
+from time import monotonic
+from time import sleep
 import threading
 
 _sentinel = object()
@@ -10,16 +13,23 @@ _sentinel = object()
 # https://github.com/python/cpython/blob/3.8/Lib/sched.py
 
 
-class EventScheduler(sched.scheduler):
-    class SchedulerStatus(Enum):
-        RUNNING = 0
-        STOPPING = 1
-        STOPPED = 2
+class SchedulerStatus(Enum):
+    RUNNING = 0
+    STOPPING = 1
+    STOPPED = 2
 
-    def __init__(self, thread_name):
-        super().__init__()
-        self._scheduler_status_lock = threading.RLock()
-        self._scheduler_status = self.SchedulerStatus.STOPPED
+
+class EventScheduler():
+
+    def __init__(self,
+                 thread_name=None,
+                 timefunc=monotonic,
+                 delayfunc=sleep):
+        self._queue = []
+        self._lock = threading.RLock()
+        self.timefunc = timefunc
+        self.delayfunc = delayfunc
+        self._scheduler_status = SchedulerStatus.STOPPED
         self._event_thread = threading.Thread(target=self.run,
                                               name=thread_name)
         # Condition variable to notify the event thread when there's a new
@@ -41,33 +51,32 @@ class EventScheduler(sched.scheduler):
         """
         if kwargs is _sentinel:
             kwargs = {}
-        with self._scheduler_status_lock:
-            if self._scheduler_status != self.SchedulerStatus.RUNNING:
+        event = Event(time, priority, action, argument, kwargs)
+        with self._lock:
+            if self._scheduler_status != SchedulerStatus.RUNNING:
                 return None
-            event = super().enterabs(time, priority, action, argument, kwargs)
-            # Notify the event thread about a new event in the queue.
+            heapq.heappush(self._queue, event)
             self._notify()
-            return event
+        return event # The ID
 
     def enter(self, delay, priority, action, argument=(), kwargs=_sentinel):
         """A variant that specifies the time as a relative time.
         This is actually the more commonly used interface.
         """
         time = self.timefunc() + delay
-        event = self.enterabs(time, priority, action, argument, kwargs)
-        return event
+        return self.enterabs(time, priority, action, argument, kwargs)
 
     def cancel(self, event):
         """Remove an event from the queue.
         This must be presented the ID as returned by enter().
         If the event is not in the queue, this raises ValueError.
         """
-        with self._scheduler_status_lock:
-            if self._scheduler_status != self.SchedulerStatus.RUNNING:
+        with self._lock:
+            if self._scheduler_status != SchedulerStatus.RUNNING:
                 return -1
-            super().cancel(event)
+            self._queue.remove(event)
+            heapq.heapify(self._queue)
             self._notify()
-            return 0
 
     def run(self):
         # SHOULD NOT BE CALLED DIRECTLY.
@@ -126,26 +135,40 @@ class EventScheduler(sched.scheduler):
                 action(*argument, **kwargs)
                 delayfunc(0)  # Let other threads run
 
+    @property
+    def queue(self):
+        """An ordered list of upcoming events.
+                Events are named tuples with fields for:
+                    time, priority, action, arguments, kwargs
+                """
+        # Use heapq to sort the queue rather than using 'sorted(self._queue)'.
+        # With heapq, two events scheduled at the same time will show in
+        # the actual order they would be retrieved.
+        with self._lock:
+            events = self._queue[:]
+            self._notify()
+        return list(map(heapq.heappop, [events] * len(events)))
+
     def start(self):
-        with self._scheduler_status_lock:
-            if self._scheduler_status != self.SchedulerStatus.STOPPED:
+        with self._lock:
+            if self._scheduler_status != SchedulerStatus.STOPPED:
                 return -1
             self._event_thread.start()
-            self._scheduler_status = self.SchedulerStatus.RUNNING
+            self._scheduler_status = SchedulerStatus.RUNNING
         return 0
 
     def stop(self):
-        with self._scheduler_status_lock:
-            if self._scheduler_status != self.SchedulerStatus.RUNNING:
-                return -1
-            self._scheduler_status = self.SchedulerStatus.STOPPING
-        super().enterabs(sys.maxsize, sys.maxsize, None)
-        # Notify the event thread about a new event in the queue (in this case,
-        # it's the thread terminating event)
-        self._notify()
         # TODO: Figure out the max time that we can put in here that can
         #  work for all kinds of time functions
-        with self._scheduler_status_lock:
-            self._event_thread.join()
-            self._scheduler_status = self.SchedulerStatus.STOPPED
+        event = Event(sys.maxsize, sys.maxsize, None, (), {})
+        with self._lock:
+            if self._scheduler_status != SchedulerStatus.RUNNING:
+                return -1
+            self._scheduler_status = SchedulerStatus.STOPPING
+            heapq.heappush(self._queue, event)
+            self._notify()
+        self.delayfunc(0) # let other threads fun since the next line is a join
+        self._event_thread.join()
+        with self._lock:
+            self._scheduler_status = SchedulerStatus.STOPPED
         return 0
