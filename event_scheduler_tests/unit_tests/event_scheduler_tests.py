@@ -114,17 +114,6 @@ class EventSchedulerTests(unittest.TestCase):
         self.assertListEqual(result_list, ['A', 'B', 'C', 'D', 'E'])
         event_scheduler.stop()
 
-    def test_multiple_events_built_in_timer(self):
-        event_scheduler = EventScheduler(TEST_THREAD)
-        event_scheduler.start()
-        result_list = []
-        event_scheduler.enterabs(0.2, 1, insert_into_list, ('A', result_list))
-        event_scheduler.enterabs(0.4, 1, insert_into_list, ('B', result_list))
-        event_scheduler.enterabs(0.7, 1, insert_into_list, ('C', result_list))
-        event_scheduler.enterabs(1, 1, insert_into_list, ('D', result_list))
-        event_scheduler.stop()
-        self.assertListEqual(result_list, ['A', 'B', 'C', 'D'])
-
     def test_event_time_in_the_past(self):
         event_scheduler = EventScheduler(TEST_THREAD,
                                          TestTimer.monotonic,
@@ -154,3 +143,29 @@ class EventSchedulerTests(unittest.TestCase):
         TestTimer.advance_time(1)
         event_scheduler.stop()
         self.assertListEqual(result_list, ['B'])
+
+    def test_multiple_events_built_in_timer(self):
+        # We should test the built-in timer to make sure it's working as
+        # expected. We can also test the hard stop being set to false, (the
+        # event scheduler should execute all remaining events in the queue
+        # before stopping).
+        event_scheduler = EventScheduler(TEST_THREAD)
+        event_scheduler.start()
+        result_list = []
+        event_scheduler.enterabs(0.2, 1, insert_into_list, ('A', result_list))
+        event_scheduler.enterabs(0.4, 1, insert_into_list, ('B', result_list))
+        event_scheduler.enterabs(0.7, 1, insert_into_list, ('C', result_list))
+        event_scheduler.enterabs(1, 1, insert_into_list, ('D', result_list))
+        event_scheduler.stop(False)
+        self.assertListEqual(result_list, ['A', 'B', 'C', 'D'])
+
+    def test_stop_scheduler_hard_stop(self):
+        # With a hard stop, the event scheduler clear all of the upcoming
+        # events from the queue when stopping.
+        event_scheduler = EventScheduler(TEST_THREAD)
+        TestTimer.set_event_scheduler(event_scheduler)
+        event_scheduler.start()
+        result_list = []
+        event_scheduler.enterabs(30, 1, insert_into_list, ('A', result_list))
+        event_scheduler.stop(True)
+        self.assertListEqual(result_list, [])

@@ -79,6 +79,19 @@ class EventScheduler:
                 self._notify()
             except ValueError:
                 pass
+        return 0
+
+    def cancel_all(self):
+        """Clear all events from the queue.
+        If the queue is already empty, this is a no-op.
+        """
+        with self._lock:
+            if self._scheduler_status != SchedulerStatus.RUNNING:
+                return -1
+            if self._queue:
+                self._queue.clear()
+                self._notify()
+        return 0
 
     def _run(self):
         """ Execute events with the soonest time and lowest priority events
@@ -148,10 +161,12 @@ class EventScheduler:
             self._scheduler_status = SchedulerStatus.RUNNING
         return 0
 
-    def stop(self):
+    def stop(self, hard_stop: bool = False):
         with self._lock:
             if self._scheduler_status != SchedulerStatus.RUNNING:
                 return -1
+            if hard_stop:
+                self.cancel_all()
             self._scheduler_status = SchedulerStatus.STOPPING
             last_event = Event(self.timefunc(), 0, None, (), {})
             if self._queue:
@@ -165,7 +180,7 @@ class EventScheduler:
                           {})
             heapq.heappush(self._queue, event)
             self._notify()
-        sleep(0)  # let other threads fun since the next line is a join
+        sleep(0)  # let other threads run since the next line is a join
         self._event_thread.join()
         with self._lock:
             self._scheduler_status = SchedulerStatus.STOPPED
