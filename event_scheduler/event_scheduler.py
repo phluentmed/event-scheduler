@@ -103,7 +103,8 @@ class EventScheduler:
                         kwargs=_sentinel):
         """Enter a new recurring event in the queue at a specified interval.
         Returns an ID for the event which can be used to remove it, if
-        necessary.
+        necessary. The new event is scheduled to occur 'interval' time after
+        the previous event was scheduled.
         """
         if kwargs is _sentinel:
             kwargs = {}
