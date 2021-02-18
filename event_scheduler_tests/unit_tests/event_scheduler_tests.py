@@ -126,6 +126,48 @@ class EventSchedulerTests(unittest.TestCase):
         event_scheduler.stop()
         self.assertListEqual(result_list, ['A'])
 
+    def test_recurring_event(self):
+        event_scheduler = EventScheduler(TEST_THREAD,
+                                         TestTimer.monotonic,
+                                         TestTimer)
+        TestTimer.set_event_scheduler(event_scheduler)
+        event_scheduler.start()
+        result_list = []
+        event_scheduler.enter_recurring(5,
+                                        0,
+                                        insert_into_list,
+                                        ('A', result_list))
+        TestTimer.advance_time(2)
+        self.assertListEqual(result_list, [])
+        TestTimer.advance_time(3)
+        self.assertListEqual(result_list, ['A'])
+        TestTimer.advance_time(5)
+        self.assertListEqual(result_list, ['A', 'A'])
+        event_scheduler.stop(True)
+
+    def test_multiple_recurring_events(self):
+        event_scheduler = EventScheduler(TEST_THREAD,
+                                         TestTimer.monotonic,
+                                         TestTimer)
+        TestTimer.set_event_scheduler(event_scheduler)
+        event_scheduler.start()
+        result_list = []
+        event_scheduler.enter_recurring(5,
+                                        0,
+                                        insert_into_list,
+                                        ('A', result_list))
+        event_scheduler.enter_recurring(2,
+                                        0,
+                                        insert_into_list,
+                                        ('B', result_list))
+        TestTimer.advance_time(2)
+        self.assertListEqual(result_list, ['B'])
+        TestTimer.advance_time(3)
+        self.assertListEqual(result_list, ['B', 'B', 'A'])
+        TestTimer.advance_time(5)
+        self.assertListEqual(result_list, ['B', 'B', 'A', 'B', 'B', 'A', 'B'])
+        event_scheduler.stop(True)
+
     def test_cancel_event(self):
         event_scheduler = EventScheduler(TEST_THREAD,
                                          TestTimer.monotonic,
@@ -144,6 +186,77 @@ class EventSchedulerTests(unittest.TestCase):
         event_scheduler.stop()
         self.assertListEqual(result_list, ['B'])
 
+    def test_cancel_recurring_event(self):
+        event_scheduler = EventScheduler(TEST_THREAD,
+                                         TestTimer.monotonic,
+                                         TestTimer)
+        TestTimer.set_event_scheduler(event_scheduler)
+        event_scheduler.start()
+        result_list = []
+        event_id = event_scheduler.enter_recurring(5,
+                                                   0,
+                                                   insert_into_list,
+                                                   ('A', result_list))
+        TestTimer.advance_time(5)
+        self.assertListEqual(result_list, ['A'])
+        event_scheduler.cancel_recurring(event_id)
+        TestTimer.advance_time(5)
+        self.assertListEqual(result_list, ['A'])
+        event_scheduler.stop(True)
+
+    def test_cancel_multiple_recurring_events(self):
+        event_scheduler = EventScheduler(TEST_THREAD,
+                                         TestTimer.monotonic,
+                                         TestTimer)
+        TestTimer.set_event_scheduler(event_scheduler)
+        event_scheduler.start()
+        result_list = []
+        event_id_a = event_scheduler.enter_recurring(5,
+                                                     0,
+                                                     insert_into_list,
+                                                     ('A', result_list))
+        event_id_b = event_scheduler.enter_recurring(2,
+                                                     0,
+                                                     insert_into_list,
+                                                     ('B', result_list))
+        TestTimer.advance_time(2)
+        self.assertListEqual(result_list, ['B'])
+        TestTimer.advance_time(3)
+        self.assertListEqual(result_list, ['B', 'B', 'A'])
+        event_scheduler.cancel_recurring(event_id_b)
+        TestTimer.advance_time(5)
+        self.assertListEqual(result_list, ['B', 'B', 'A', 'A'])
+        TestTimer.advance_time(5)
+        self.assertListEqual(result_list, ['B', 'B', 'A', 'A', 'A'])
+        event_scheduler.cancel_recurring(event_id_a)
+        TestTimer.advance_time(5)
+        self.assertListEqual(result_list, ['B', 'B', 'A', 'A', 'A'])
+        event_scheduler.stop(True)
+
+    def test_cancel_all_events(self):
+        event_scheduler = EventScheduler(TEST_THREAD,
+                                         TestTimer.monotonic,
+                                         TestTimer)
+        TestTimer.set_event_scheduler(event_scheduler)
+        event_scheduler.start()
+        result_list = []
+        event_scheduler.enter_recurring(5,
+                                        0,
+                                        insert_into_list,
+                                        ('A', result_list))
+        event_scheduler.enter_recurring(2,
+                                        0,
+                                        insert_into_list,
+                                        ('B', result_list))
+        event_scheduler.enter(0, 0, insert_into_list, ('C', result_list))
+        TestTimer.advance_time(1)
+        self.assertListEqual(result_list, ['C'])
+        event_scheduler.enter(1, 0, insert_into_list, ('D', result_list))
+        TestTimer.advance_time(0.2)
+        event_scheduler.cancel_all()
+        self.assertListEqual(result_list, ['C'])
+        event_scheduler.stop(False)
+
     def test_multiple_events_built_in_timer(self):
         # We should test the built-in timer to make sure it's working as
         # expected. We can also test the hard stop being set to false, (the
@@ -152,12 +265,16 @@ class EventSchedulerTests(unittest.TestCase):
         event_scheduler = EventScheduler(TEST_THREAD)
         event_scheduler.start()
         result_list = []
+        event_scheduler.enter_recurring(1.2,
+                                        0,
+                                        insert_into_list,
+                                        ('#', result_list))
         event_scheduler.enterabs(0.2, 1, insert_into_list, ('A', result_list))
         event_scheduler.enterabs(0.4, 1, insert_into_list, ('B', result_list))
         event_scheduler.enterabs(0.7, 1, insert_into_list, ('C', result_list))
         event_scheduler.enterabs(1, 1, insert_into_list, ('D', result_list))
         event_scheduler.stop(False)
-        self.assertListEqual(result_list, ['A', 'B', 'C', 'D'])
+        self.assertListEqual(result_list, ['A', 'B', 'C', 'D', '#'])
 
     def test_stop_scheduler_hard_stop(self):
         # With a hard stop, the event scheduler clear all of the upcoming
