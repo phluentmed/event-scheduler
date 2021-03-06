@@ -1,12 +1,5 @@
 Python Event Scheduler Documentation
 ====================================
-Another Simple Header
-=====================
-
-Here is some text explaining some very complicated stuff.::
-
-   print 'hello'
-   >> hello
 
 Guide
 ^^^^^
@@ -14,11 +7,12 @@ Guide
 .. toctree::
    :maxdepth: 2
 
-   license
+   event_scheduler
    help
+   license
 
 Indices and tables
-==================
+^^^^^^^^^^^^^^^^^^
 
 * :ref:`genindex`
 * :ref:`modindex`

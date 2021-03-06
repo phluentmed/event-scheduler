@@ -40,7 +40,7 @@ class TestTimer(threading.Timer):
         if not cls._cv:
             cls._time += increment
             for observer in cls._observers:
-                observer.run()
+                observer._run()
             return
         with cls._cv:
             cls._time += increment

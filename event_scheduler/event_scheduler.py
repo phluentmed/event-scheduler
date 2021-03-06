@@ -32,7 +32,7 @@ Event.argument.__doc__ = ('''argument is a sequence holding the positional
 arguments for the action.''')
 Event.kwargs.__doc__ = ('''kwargs is a dictionary holding the keyword
 arguments for the action.''')
-Event.kwargs.__doc__ = '''id is a value used to identify recurring events.'''
+Event.id.__doc__ = '''id is a value used to identify recurring events.'''
 
 
 class SchedulerStatus(Enum):
@@ -335,11 +335,10 @@ class EventScheduler:
     @property
     def queue(self):
         """Return an ordered list of upcoming events. Events are named tuples
-        with fields for:
-        time, priority, action, arguments, kwargs, id
+        with fields for: time, priority, action, arguments, kwargs, id
         Returns:
             list: All the events currently in the queue ordered from the
-            soonest to occur and by priority
+            soonest to occur and by priority,
         """
         # Use heapq to sort the queue rather than using 'sorted(self._queue)'.
         # With heapq, two events scheduled at the same time will show in
