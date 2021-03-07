@@ -11,7 +11,11 @@ setup(
     description="Always-on event scheduler",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/phluentmed",
+    project_urls={
+      'Documentation': 'https://event-scheduler.readthedocs.io',
+      'GitHub': "https://github.com/phluentmed/event-scheduler"
+    },
+    url="https://github.com/phluentmed/event-scheduler",
     packages=find_packages(),
     keywords='Python Event Scheduler',
     classifiers=[

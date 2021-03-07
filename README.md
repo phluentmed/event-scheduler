@@ -2,7 +2,8 @@
 ## Table of Contents
 - [Overview](#overview)
 - [Installing](#installing)
-- [Features](#quick-start)
+- [Documentation](#documentation)
+- [Quick Start](#quick-start)
 - [Example](#example)
 - [Contact](#contact)
 
@@ -15,7 +16,6 @@ some lightweight tasks. We took some inspiration for the API design from
 native sched module, the Event Scheduler is always on and ready to accept
 events. Event Scheduler is completely thread-safe too!
 
-[EventScheduler GitHub](https://github.com/phluentmed/PythonEventScheduler)
 
 ### Installing
 You should already have pip installed if you're using python > 3.4. If you
@@ -33,6 +33,8 @@ To import the module, add the following lines in your Python file.
 To download directly visit [PyPi](https://pypi.org/project/event-scheduler/) or
 the [GitHub repository](https://github.com/phluentmed/PythonEventScheduler).
 
+## Documentation
+Full documentation can be found [here](https://event-scheduler.readthedocs.io).
 ### Quick Start
 `event_scheduler.start()`
 > Enable the event scheduler to start taking events
