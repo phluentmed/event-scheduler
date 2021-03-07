@@ -1,7 +1,8 @@
+import sys
+
 from event_scheduler.event_scheduler import EventScheduler
 from event_scheduler.test_util import TestTimer
 import unittest
-import time
 
 
 def insert_into_list(item, list_object: list):
@@ -36,6 +37,40 @@ class EventSchedulerTests(unittest.TestCase):
         event_scheduler.enter(0, 0, insert_into_list, ('A', result_list))
         TestTimer.advance_time(0)
         self.assertFalse(result_list)
+
+    def test_event_scheduler_raises_invalid_priority(self):
+        event_scheduler = EventScheduler(TEST_THREAD,
+                                         TestTimer.monotonic,
+                                         TestTimer)
+        result_list = []
+
+        # priority less than 0
+        with self.assertRaises(ValueError):
+            event_scheduler.enter(0, -1, insert_into_list, ('A', result_list))
+        with self.assertRaises(ValueError):
+            event_scheduler.enterabs(0, -1, insert_into_list, ('A',
+                                                                result_list))
+        with self.assertRaises(ValueError):
+            event_scheduler.enter_recurring(0,
+                                            -1,
+                                            insert_into_list,
+                                            ('A', result_list))
+        # priority > sys.maxsize
+        with self.assertRaises(ValueError):
+            event_scheduler.enter(0,
+                                  sys.maxsize,
+                                  insert_into_list,
+                                  ('A', result_list))
+        with self.assertRaises(ValueError):
+            event_scheduler.enterabs(0,
+                                     sys.maxsize,
+                                     insert_into_list,
+                                     ('A', result_list))
+        with self.assertRaises(ValueError):
+            event_scheduler.enter_recurring(0,
+                                            sys.maxsize,
+                                            insert_into_list,
+                                            ('A', result_list))
 
     def test_no_double_start_or_stop(self):
         event_scheduler = EventScheduler(TEST_THREAD,
