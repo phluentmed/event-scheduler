@@ -4,8 +4,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="event_scheduler",
-    version="0.0.1",
+    name="event-scheduler",
+    version="0.1.0",
     author="Dil Mchaina, Farhan Ahmed, PhluentMed",
     author_email="phluentmed@gmail.com",
     description="Always-on event scheduler",
