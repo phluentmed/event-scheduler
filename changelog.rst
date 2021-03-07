@@ -1,7 +1,7 @@
 .. _changelog:
 
 ================
- Change history
+ Change History
 ================
 
 This document contains change notes for bugfix & new features

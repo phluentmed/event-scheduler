@@ -8,6 +8,7 @@ Guide
    :maxdepth: 2
 
    event_scheduler
+   changelog
    help
    license
 
