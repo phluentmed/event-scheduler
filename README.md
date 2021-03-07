@@ -1,22 +1,28 @@
-# EventScheduler Package
+# Event Scheduler
 ## Table of Contents
 - [Overview](#overview)
-- [Installing](#installing-dependencies)
-- [Features](#features)
+- [Installing](#installing)
+- [Documentation](#documentation)
+- [Quick Start](#quick-start)
 - [Example](#example)
 - [Contact](#contact)
 
 ### Overview
-Phluent's always on event scheduler is a modified version of the native python [library's scheduler](https://docs.python.org/3/library/sched.html). This means the event scheduler will always be running even with no actions. With python's sched module, a call to run() has to be made every time the number of pending events reaches zero and new events are added. With EventScheduler, only one call to start() needs to be made to start the event scheduler and it's ready to accept and run actions even when empty.
+The Event Scheduler uses an internal thread to allow the application to 
+schedule events to occur either ASAP or at a specified time in the future.
+Instead of blocking your application's main thread, you can concurrently run
+some lightweight tasks. We took some inspiration for the API design from 
+[library's scheduler](https://docs.python.org/3/library/sched.html). Unlike the
+native sched module, the Event Scheduler is always on and ready to accept
+events. Event Scheduler is completely thread-safe too!
 
-[EventScheduler GitHub](https://github.com/phluentmed/PythonEventScheduler)
-
-Refer to [sched.scheduler](https://github.com/python/cpython/blob/3.8/Lib/sched.py) for the descriptions of the non-modified functions.
 
 ### Installing
-You should already have pip installed if you're using python > 3.4. If you don't, please visit this [link](https://pip.pypa.io/en/stable/installing/) to install it.
+You should already have pip installed if you're using python > 3.4. If you
+don't, please visit this [link](https://pip.pypa.io/en/stable/installing/) to 
+install it.
 
-To install the always-on event scheduler, type the following command in the terminal.
+To install event scheduler, type the following command in the terminal:
 
 `pip install event-scheduler`
 
@@ -24,61 +30,62 @@ To import the module, add the following lines in your Python file.
 
 `from event_scheduler import EventScheduler`
 
-To download directly visit [PyPi](https://pypi.org/project/event-scheduler/) or the [GitHub repository](https://github.com/phluentmed/PythonEventScheduler).
+To download directly visit [PyPi](https://pypi.org/project/event-scheduler/) or
+the [GitHub repository](https://github.com/phluentmed/PythonEventScheduler).
 
-### Features
-##### [Previous features:](https://docs.python.org/3/library/sched.html#scheduler-objects) 
+## Documentation
+Full documentation can be found [here](https://event-scheduler.readthedocs.io).
+### Quick Start
+`event_scheduler.start()`
+> Enable the event scheduler to start taking events
 
-`scheduler.enterabs(time, priority, action, argument=(), kwargs={})`
->
->Schedule a new event. The time argument should be a numeric type compatible with the return value of the timefunc function passed to the constructor. Events scheduled for the same time will be executed in the order of their priority. A lower number represents a higher priority.
->
->Executing the event means executing action(*argument, **kwargs). argument is a sequence holding the positional arguments for action. kwargs is a dictionary holding the keyword arguments for action.
->
->Return value is an event which may be used for later cancellation of the event (see cancel()).
+`event_scheduler.stop(hard_stop=False)`
+>Stop the event scheduler and its internal thread. Set `hard_stop` to `True`
+>to stop the scheduler right away and discard all pending events. Set 
+>`hard_stop` to `False` to wait for all events to finish executing at their
+>scheduled times.
 
-`scheduler.enter(delay, priority, action, argument=(), kwargs={})`
+`event_scheduler.enter(delay, priority, action, arguments=(), kwargs={})`
 
->Delay is a relative time unit from when it enters the queue. Other than the delay parameter, this function behaves identical to enterabs().
+>Schedule an event with a callable `action` to be executed after the `delay`.
+>Events will be executed according to their `delay` and `priority` (lower 
+>number = higher priority). `argumments` holds positional arguments and 
+>`kwargs` hold keyword arguments for the action. Returns an event object which
+>can be used to cancel the event.
 
-`scheduler.cancel(event)`
+`event_scheduler.cancel(event)`
+>Cancel the event if it has not yet been executed.
 
-> Remove the event from the queue. If event is not an event currently in the queue, this method will raise a ValueError.
+`event_scheduler.cancel_recurring(event_id)`
+>Cancel the recurring event and all future occurrences. 
 
-`scheduler.empty()`
+```python
+from event_scheduler import EventScheduler
 
->Return True if the event queue is empty.
-
-`scheduler.queue`
-
-> Read-only attribute returning a list of upcoming events in the order they will be run. Each event is shown as a named tuple with the following fields: time, priority, action, argument, kwargs.
-
-##### [New features:](https://github.com/phluentmed/PythonEventScheduler#readme)
-
-`scheduler.start()` 
-
-Triggers the EventScheduler to start running, and will start executing actions in its queue depending on delay and priority. A value of 0 is returned on a successful start up and -1 on failure to start.
-
-`scheduler.stop()` 
-
-Will prevent the event scheduler from taking any more actions. The event scheduler will execute the remaining actions (if any). A value of 0 is returned on a successful stop and -1 on failure to stop.
-
-`scheduler.run(blocking=True)`
-
-This method is now private and should not be called.
+event_scheduler = EventScheduler()
+# Starts the scheduler
+event_scheduler.start()
+# Schedule an event that prints a message after 5 seconds
+event_scheduler.enter(5, 0, print, ('5 seconds has passed since this event was entered!',))
+# Schedule a recurring event that prints a message every 10 seconds
+event_scheduler.enter_recurring(10, 0, print, ('10 second interval has passed!',))
+```
+Output:
+\
+`5 seconds has passed since this event was entered!`
+\
+`10 second interval has passed!`
+\
+`10 second interval has passed!`
+\
+`...`
  
 ### Example
-Please refer to this [code repository](https://github.com/phluentmed/PythonEventScheduler/tree/master/event_scheduler_example) for the example. We're going to be creating a bank account and managing transactions with an event scheduler.
-
-In this scenario it's important to have an accurate balance. The "actions" we'll focus on are deposit and withdraw.
-
-
-
+Please refer [here](example/transactions.py) for the example. 
 
 ### Contact
-Please email phluentmed@gmail.com or open an issue if you need any help using the 
-code, have any questions, or even have some feature suggestions. If you're
-experiencing issues, please send the corresponding stack trace or screenshot to help us diagnose the issue.
+Please email phluentmed@gmail.com or open an issue if you need any help using
+the module, have any questions, or even have some feature suggestions.
 
 <ins>Recommended Email format: </ins>
 
@@ -88,7 +95,7 @@ Steps to reproduce: (Please include code snippets or stack trace where possible)
 
 Device used:
 
-Platform: 
+Platform:
 
 Actual result:
 

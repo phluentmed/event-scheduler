@@ -32,4 +32,4 @@ jobs:
     - name: Test with unittest
       shell: bash
       run: |
-        python event_scheduler_tests/tests.py
+        python tests/tests.py

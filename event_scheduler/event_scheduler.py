@@ -108,10 +108,16 @@ class EventScheduler:
             Event: If the scheduler is running, None otherwise. This can be
             used to cancel the event later, if necessary.
 
+        Raises:
+            ValueError: If the 0 > priority >= sys.maxsize
+
         Warning:
             Long running actions will stall the internal thread and may impact
             the scheduling of other events.
         """
+        if priority >= sys.maxsize or priority < 0:
+            raise ValueError('Priority must be equal to or greater than 0 and '
+                             'less than sys.maxsize')
         if kwargs is _sentinel:
             kwargs = {}
         # Non-recurring events have an id of 0
@@ -143,10 +149,16 @@ class EventScheduler:
             Event: If the scheduler is running, None otherwise. This can be
             used to cancel the event later, if necessary.
 
+        Raises:
+            ValueError: If the 0 > priority >= sys.maxsize
+
         Warning:
             Long running actions will stall the internal thread and may impact
             the scheduling of other events.
         """
+        if priority >= sys.maxsize or priority < 0:
+            raise ValueError('Priority must be equal to or greater than 0 and '
+                             'less than sys.maxsize')
         time = self.timefunc() + delay
         return self.enterabs(time, priority, action, arguments, kwargs)
 
@@ -176,10 +188,16 @@ class EventScheduler:
             int: If the scheduler is running, None otherwise. This id can be
             used to cancel the event later, if necessary.
 
+        Raises:
+            ValueError: If the 0 > priority >= sys.maxsize
+
         Warning:
             Long running actions will stall the internal thread and may impact
             the scheduling of other events.
         """
+        if priority >= sys.maxsize or priority < 0:
+            raise ValueError('Priority must be equal to or greater than 0 and '
+                             'less than sys.maxsize')
         if kwargs is _sentinel:
             kwargs = {}
         with self._lock:
@@ -336,9 +354,10 @@ class EventScheduler:
     def queue(self):
         """Return an ordered list of upcoming events. Events are named tuples
         with fields for: time, priority, action, arguments, kwargs, id
+
         Returns:
             list: All the events currently in the queue ordered from the
-            soonest to occur and by priority,
+                soonest to occur and by priority,
         """
         # Use heapq to sort the queue rather than using 'sorted(self._queue)'.
         # With heapq, two events scheduled at the same time will show in
@@ -364,12 +383,18 @@ class EventScheduler:
         return 0
 
     def stop(self, hard_stop: bool = False):
-        """Start the event scheduler and enable it to start taking events.
+        """Stop the event scheduler and stop its internal thread. Will not be
+        able to take in new events when invoked.
 
+        Args:
+            hard_stop (bool, optional): If set to `False`, wait until all
+                events execute at their scheduled time before stopping. If set
+                to `True`, will stop the scheduler right away and discard all
+                pending events.
         Returns:
             int: Returns 0 if the event scheduler was successfully stopped, -1
-            if the scheduler is already in the process of stopping/already
-            stopped.
+                if the scheduler is already in the process of stopping/already
+                stopped.
         """
         with self._lock:
             if self._scheduler_status != SchedulerStatus.RUNNING:

@@ -1,6 +1,5 @@
-import BankAccount
+import bank_account
 import threading
-# Importing EventScheduler from the package
 from event_scheduler import EventScheduler
 
 # Instantiating the event scheduler with the name
@@ -10,7 +9,7 @@ scheduler = EventScheduler("transaction_threads")
 # Scheduler has been started and is able to take actions
 scheduler.start()
 
-account = BankAccount.BankAccount(100)
+account = bank_account.BankAccount(100)
 
 
 def is_transaction_successful(successful, location):
