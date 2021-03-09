@@ -20,8 +20,8 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'Python Event Scheduler'
-copyright = '2021, Pluent'
-author = 'Dil Mchaina, Phluent'
+copyright = '2021, Phluent'
+author = 'Dil Mchaina, Farhan Ahmed'
 
 # The full version, including alpha/beta/rc tags
 release = '0.7'

@@ -105,8 +105,9 @@ class EventScheduler:
             kwargs (:obj:`dict`, optional): Keyword arguments for the action.
 
         Returns:
-            Event: If the scheduler is running, None otherwise. This can be
-            used to cancel the event later, if necessary.
+            Event: The scheduled event if the scheduler is running, None
+            otherwise. This can be used to cancel the event later, if
+            necessary.
 
         Raises:
             ValueError: If the 0 > priority >= sys.maxsize
@@ -129,14 +130,19 @@ class EventScheduler:
             self._notify()
         return event  # The ID
 
-    def enter(self, delay, priority, action, arguments=(), kwargs=_sentinel):
+    def enter(self,
+              delay,
+              priority,
+              action,
+              arguments=(),
+              kwargs=_sentinel) -> Event:
         """ Enter a new event in the queue to occur at a time relative to the
         current time.
 
         Args:
             delay: The relative time the event will be scheduled to execute.
-            Eg. If you pass in 1 as the delay, the event will be scheduled to
-            execute in 1 + now() seconds from now.
+                Eg. If you pass in 1 as the delay, the event will be scheduled
+                to execute in 1 + now() seconds from now.
             priority (int): The priority the event will execute with. If two
                 events are scheduled for the same time, the event with the
                 lower priority will execute first.
@@ -146,8 +152,9 @@ class EventScheduler:
             kwargs (:obj:`dict`, optional): Keyword arguments for the action.
 
         Returns:
-            Event: If the scheduler is running, None otherwise. This can be
-            used to cancel the event later, if necessary.
+            Event: The scheduled event if the scheduler is running, None
+            otherwise. This can be used to cancel the event later, if
+            necessary.
 
         Raises:
             ValueError: If the 0 > priority >= sys.maxsize
@@ -167,15 +174,15 @@ class EventScheduler:
                         priority,
                         action,
                         arguments=(),
-                        kwargs=_sentinel):
+                        kwargs=_sentinel) -> Event:
         """Enter a new recurring event in the queue to occur at a specified
         interval.
 
         Args:
             interval: The interval time the event will be scheduled to execute.
-            Eg. If you pass in 5 as the delay, the event will be scheduled to
-            execute every 5 seconds starting five seconds from when it's
-            entered.
+                Eg. If you pass in 5 as the delay, the event will be scheduled to
+                execute every 5 seconds starting five seconds from when it's
+                entered.
             priority (int): The priority the event will execute with. If two
                 events are scheduled for the same time, the event with the
                 lower priority will execute first.
@@ -185,8 +192,9 @@ class EventScheduler:
             kwargs (:obj:`dict`, optional): Keyword arguments for the action.
 
         Returns:
-            int: If the scheduler is running, None otherwise. This id can be
-            used to cancel the event later, if necessary.
+            int: An event id of the recurring event if the scheduler is
+            running, None otherwise. This id can be used to cancel the event
+            later, if necessary.
 
         Raises:
             ValueError: If the 0 > priority >= sys.maxsize
@@ -242,8 +250,8 @@ class EventScheduler:
             event: The event to be cancelled.
 
         Returns:
-            int: Returns 0 if the event was successfully removed/not in the
-            queue, -1 otherwise.
+            int: 0 if the event was successfully removed/not in the queue, -1
+            otherwise.
         """
         with self._lock:
             if self._scheduler_status != SchedulerStatus.RUNNING:
@@ -257,7 +265,7 @@ class EventScheduler:
                 pass
         return 0
 
-    def cancel_recurring(self, event_id):
+    def cancel_recurring(self, event_id) -> int:
         """Remove recurring event from the queue using the id returned by
         enter_recurring(). If the recurring event is not in the queue, this is
         a no-op.
@@ -266,8 +274,8 @@ class EventScheduler:
             event_id (int): The id of the recurring event to be cancelled.
 
         Returns:
-            int: Returns 0 if the event was successfully removed/not in the
-            queue, -1 otherwise.
+            int: 0 if the event was successfully removed/not in the queue, -1
+            otherwise.
         """
         with self._lock:
             if self._scheduler_status != SchedulerStatus.RUNNING:
@@ -282,13 +290,12 @@ class EventScheduler:
             heapq.heapify(self._queue)
             return 0
 
-    def cancel_all(self):
+    def cancel_all(self) -> int:
         """Clear all events from the queue. If the queue is already empty, this
         is a no-op.
 
         Returns:
-            int: Returns 0 if all the events were successfully cleared, -1
-            otherwise.
+            int: 0 if all the events were successfully cleared, -1 otherwise.
         """
         with self._lock:
             if self._scheduler_status != SchedulerStatus.RUNNING:
@@ -351,13 +358,13 @@ class EventScheduler:
                 self._notify()
 
     @property
-    def queue(self):
+    def queue(self) -> list:
         """Return an ordered list of upcoming events. Events are named tuples
         with fields for: time, priority, action, arguments, kwargs, id
 
         Returns:
             list: All the events currently in the queue ordered from the
-                soonest to occur and by priority,
+            soonest to occur and by priority,
         """
         # Use heapq to sort the queue rather than using 'sorted(self._queue)'.
         # With heapq, two events scheduled at the same time will show in
@@ -367,12 +374,12 @@ class EventScheduler:
             self._notify()
         return list(map(heapq.heappop, [events] * len(events)))
 
-    def start(self):
+    def start(self) -> int:
         """Start the event scheduler and enable it to start taking events.
 
         Returns:
-            int: Returns 0 if the event scheduler was successfully started, -1
-            if the scheduler has already been started or is in the process of
+            int: 0 if the event scheduler was successfully started, -1 if the
+            scheduler has already been started or is in the process of
             stopping.
         """
         with self._lock:
@@ -382,7 +389,7 @@ class EventScheduler:
             self._scheduler_status = SchedulerStatus.RUNNING
         return 0
 
-    def stop(self, hard_stop: bool = False):
+    def stop(self, hard_stop: bool = False) -> int:
         """Stop the event scheduler and stop its internal thread. Will not be
         able to take in new events when invoked.
 
@@ -392,9 +399,8 @@ class EventScheduler:
                 to `True`, will stop the scheduler right away and discard all
                 pending events.
         Returns:
-            int: Returns 0 if the event scheduler was successfully stopped, -1
-                if the scheduler is already in the process of stopping/already
-                stopped.
+            int: 0 if the event scheduler was successfully stopped, -1 if the
+            scheduler is already in the process of stopping/already stopped.
         """
         with self._lock:
             if self._scheduler_status != SchedulerStatus.RUNNING:

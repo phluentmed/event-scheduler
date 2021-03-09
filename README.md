@@ -49,7 +49,7 @@ Full documentation can be found [here](https://event-scheduler.readthedocs.io).
 
 >Schedule an event with a callable `action` to be executed after the `delay`.
 >Events will be executed according to their `delay` and `priority` (lower 
->number = higher priority). `argumments` holds positional arguments and 
+>number = higher priority). `arguments` holds positional arguments and 
 >`kwargs` hold keyword arguments for the action. Returns an event object which
 >can be used to cancel the event.
 
@@ -81,7 +81,9 @@ Output:
 `...`
  
 ### Example
-Please refer [here](example/transactions.py) for the example. 
+Please refer
+[here](https://pypi.org/project/event-scheduler/example/transactions.py)
+for the example. 
 
 ### Contact
 Please email phluentmed@gmail.com or open an issue if you need any help using
