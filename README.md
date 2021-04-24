@@ -82,7 +82,7 @@ Output:
  
 ### Example
 Please refer
-[here](https://pypi.org/project/event-scheduler/example/transactions.py)
+[here](https://github.com/phluentmed/event-scheduler/blob/master/example/transactions.py)
 for the example. 
 
 ### Contact

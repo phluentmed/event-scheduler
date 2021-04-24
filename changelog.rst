@@ -17,3 +17,11 @@ in the 0.x.x series,
 - Add scheduling of recurring events
 - Add testutil to aid in testing application code with an event scheduler
 - Some naming changes in the tests
+
+0.1.1
+=====
+:release-date: 2021-04-24 12.22 A.M UTC-5:00
+:release-by: Dil Mchaina
+
+- Fix bug involving field naming in Event namedtuple
+- Fix relative link in README.md in pypi

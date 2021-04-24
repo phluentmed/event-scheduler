@@ -13,7 +13,7 @@ _sentinel = object()
 
 
 class Event(namedtuple('Event',
-                       'time, priority, action, id, argument, kwargs')):
+                       'time, priority, action, argument, kwargs, id')):
     __slots__ = []
     def __eq__(s, o): return (s.time, s.priority) == (o.time, o.priority)
     def __lt__(s, o): return (s.time, s.priority) <  (o.time, o.priority)

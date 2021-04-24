@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="event-scheduler",
-    version="0.1.0",
+    version="0.1.1",
     author="Dil Mchaina, Farhan Ahmed, PhluentMed",
     author_email="phluentmed@gmail.com",
     description="Always-on event scheduler",
