@@ -5,8 +5,8 @@ from event_scheduler.test_util import TestTimer
 import unittest
 
 
-def insert_into_list(item, list_object: list):
-    list_object.append(item)
+def insert_into_list(item, list_obj: list):
+    list_obj.append(item)
 
 
 TEST_THREAD = "test_thread"
@@ -94,6 +94,21 @@ class EventSchedulerTests(unittest.TestCase):
         self.assertTrue(result_list)
         self.assertEqual(result_list[0], 'A')
 
+    def test_execute_one_event_kwargs(self):
+        event_scheduler = EventScheduler(TEST_THREAD,
+                                         TestTimer.monotonic,
+                                         TestTimer)
+        event_scheduler.start()
+        result_list = []
+        event_scheduler.enter(0,
+                              0,
+                              insert_into_list,
+                              (),
+                              {'item': 'A', 'list_obj': result_list})
+        event_scheduler.stop()
+        self.assertTrue(result_list)
+        self.assertEqual(result_list[0], 'A')
+
     def test_relative_delay(self):
         event_scheduler = EventScheduler(TEST_THREAD,
                                          TestTimer.monotonic,
@@ -172,6 +187,26 @@ class EventSchedulerTests(unittest.TestCase):
                                         0,
                                         insert_into_list,
                                         ('A', result_list))
+        TestTimer.advance_time(2)
+        self.assertListEqual(result_list, [])
+        TestTimer.advance_time(3)
+        self.assertListEqual(result_list, ['A'])
+        TestTimer.advance_time(5)
+        self.assertListEqual(result_list, ['A', 'A'])
+        event_scheduler.stop(True)
+
+    def test_recurring_event_kwargs(self):
+        event_scheduler = EventScheduler(TEST_THREAD,
+                                         TestTimer.monotonic,
+                                         TestTimer)
+        TestTimer.set_event_scheduler(event_scheduler)
+        event_scheduler.start()
+        result_list = []
+        event_scheduler.enter_recurring(5,
+                                        0,
+                                        insert_into_list,
+                                        (),
+                                        {'item': 'A', 'list_obj': result_list})
         TestTimer.advance_time(2)
         self.assertListEqual(result_list, [])
         TestTimer.advance_time(3)
