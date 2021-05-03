@@ -25,3 +25,11 @@ in the 0.x.x series,
 
 - Fix bug involving field naming in Event namedtuple
 - Fix relative link in README.md in pypi
+
+0.1.2
+=====
+:release-date: 2021-05-02 9.09 P.M UTC-5:00
+:release-by: Dil Mchaina
+
+- Fix bug when cancelling an already executed event when the queue is empty
+- Bump version on urllib3 due to security issues
