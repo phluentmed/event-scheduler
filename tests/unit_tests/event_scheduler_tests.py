@@ -256,6 +256,21 @@ class EventSchedulerTests(unittest.TestCase):
         event_scheduler.stop()
         self.assertListEqual(result_list, ['B'])
 
+    def test_cancel_event_after_execution(self):
+        event_scheduler = EventScheduler(TEST_THREAD,
+                                         TestTimer.monotonic,
+                                         TestTimer)
+        TestTimer.set_event_scheduler(event_scheduler)
+        event_scheduler.start()
+        result_list = []
+        event = event_scheduler.enter(2, 4, insert_into_list, (),
+                                      {'item':'B', 'list_obj':result_list})
+        TestTimer.advance_time(2.5)
+        # cancelling an already executed event should be a no-op
+        event_scheduler.cancel(event)
+        self.assertListEqual(result_list, ['B'])
+        event_scheduler.stop(True)
+
     def test_cancel_recurring_event(self):
         event_scheduler = EventScheduler(TEST_THREAD,
                                          TestTimer.monotonic,

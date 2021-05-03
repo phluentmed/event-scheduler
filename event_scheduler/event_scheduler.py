@@ -257,7 +257,7 @@ class EventScheduler:
             if self._scheduler_status != SchedulerStatus.RUNNING:
                 return -1
             try:
-                if self._queue[0] == event:
+                if self._queue and self._queue[0] == event:
                     self._notify()
                 self._queue.remove(event)
                 heapq.heapify(self._queue)
