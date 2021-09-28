@@ -11,9 +11,9 @@
 The Event Scheduler uses an internal thread to allow the application to 
 schedule events to occur either ASAP or at a specified time in the future.
 Instead of blocking your application's main thread, you can concurrently run
-some lightweight tasks. We took some inspiration for the API design from 
-[library's scheduler](https://docs.python.org/3/library/sched.html). Unlike the
-native sched module, the Event Scheduler is always on and ready to accept
+some lightweight tasks. We took some inspiration for the API design from the
+python library's [scheduler](https://docs.python.org/3/library/sched.html). Unlike
+the native sched module, the Event Scheduler is always on and ready to accept
 events. Event Scheduler is completely thread-safe too!
 
 
