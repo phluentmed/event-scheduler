@@ -127,7 +127,10 @@ class EventScheduler:
             if self._scheduler_status != SchedulerStatus.RUNNING:
                 return None
             heapq.heappush(self._queue, event)
-            self._notify()
+            # We only want to notify the event thread if the inserted event is
+            # in the front of the queue
+            if event == self._queue[0]:
+                self._notify()
         return event  # The ID
 
     def enter(self,
@@ -174,7 +177,7 @@ class EventScheduler:
                         priority,
                         action,
                         arguments=(),
-                        kwargs=_sentinel) -> Event:
+                        kwargs=_sentinel) -> int:
         """Enter a new recurring event in the queue to occur at a specified
         interval.
 
@@ -221,7 +224,10 @@ class EventScheduler:
                           self._id_counter)
             self._recurring_events[self._id_counter] = (event, interval)
             heapq.heappush(self._queue, event)
-            self._notify()
+            # We only want to notify the event thread if the inserted event is
+            # in the front of the queue
+            if event == self._queue[0]:
+                self._notify()
             return self._id_counter
 
     def _reschedule_recurring(self, *args):
