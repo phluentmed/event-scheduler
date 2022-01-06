@@ -33,3 +33,12 @@ in the 0.x.x series,
 
 - Fix bug when cancelling an already executed event when the queue is empty
 - Bump version on urllib3 due to security issues
+
+0.1.3
+=====
+:release-date: 2022-01-06 1.20 A.M UTC-5:00
+:release-by: Dil Mchaina
+
+- Bump urllib3 from 1.26.4 to 1.26.5 in /docs
+- Bump babel from 2.9.0 to 2.9.1 in /docs
+- Minor optimization
